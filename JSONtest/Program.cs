@@ -9,48 +9,97 @@ using System.Net.Http.Headers;
 using System.Runtime.Serialization;
 using System.IO;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Reflection;
 
 namespace JSONtest
 {
     class Program
     {
-        public string id { get; set; }
-        public string userId { get; set; }
-        public string title { get; set; }
-        public string body { get; set; }
+        //* http://dotnetbyexample.blogspot.nl/2012/02/json-deserialization-with-jsonnet-class.html */
 
-        public string name { get; set; }
-        public string email { get; set; }
-        public decimal[] geo {get; set;}
+        public class Rootobject
+        {
+            public User[] user { get; set; }
+        }
+
+        public class User
+        {
+            public int id { get; set; }
+            public string name { get; set; }
+            public string username { get; set; }
+            public string email { get; set; }
+            public Address address { get; set; }
+            public string phone { get; set; }
+            public string website { get; set; }
+            public Company company { get; set; }
+        }
+
+        public class Address
+        {
+            public string street { get; set; }
+            public string suite { get; set; }
+            public string city { get; set; }
+            public string zipcode { get; set; }
+            public Geo geo { get; set; }
+
+            public override string ToString()
+            {
+                return base.ToString();
+
+            }
+
+        }
+
+        public class Geo
+        {
+            public string lat { get; set; }
+            public string lng { get; set; }
+
+            public override string ToString()
+            {
+                return base.ToString();
+            
+            }
+        }
+
+        public class Company
+        {
+            public string name { get; set; }
+            public string catchPhrase { get; set; }
+            public string bs { get; set; }
+        }
+
 
         static void Main()
         {
-            string json;
             Program test = new Program();
-            string myURL = $"https://jsonplaceholder.typicode.com/posts/1";
+            //UserRootObject User = new UserRootObject();
 
-            //retireve data from a single post. 
-            //json = test.GetSinglePostData(myURL);
-            //dynamic results = JsonConvert.DeserializeObject<dynamic>(json);
-            //var id = results.id;
-            //var userId = results.userId;
-            //var title = results.title;
-            //var body = results.body;
+            string myPostURL = $"https://jsonplaceholder.typicode.com/posts/1";
+            string myUserURL = $"https://jsonplaceholder.typicode.com/users";
 
-            //Console.WriteLine("Results: ID " + id + ". \nuserID: " + userId + ". \nTitle: " + title + ": "+ body);
-            //Console.ReadLine();
 
-            json = test.GetSinglePostData(myURL);
-            dynamic results = JsonConvert.DeserializeObject<dynamic>(json);
-            var id = results.id;
-            var userId = results.userId;
-            var title = results.title;
+            //Retireve data from a single post. 
+            //string JsonResult = test.GetData(myPostURL);
+            //ShowPostData(JsonResult);
 
-            Console.WriteLine("Results: ID " + id + ". \nuserID: " + userId + ". \nTitle: " + title);
+
+            //Retrieve data about multiple user data object
+            
+            var JsonResult = test.GetData(myUserURL);
+            ShowUsersData(JsonResult);
+            
+            //var User = JsonConvert.DeserializeObject<List<Rootobject[]>>(result);
+           // var user = users.First();
+            //Console.WriteLine("test " + user);
+            //ShowUserData(json = test.GetUserData(myUserURL);
+
+
             Console.ReadLine();
         }
 
-        string GetSinglePostData(string url)
+        string GetData(string url)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             try
@@ -75,36 +124,85 @@ namespace JSONtest
             }
         }
 
-        void PostData(string url, string jsonContent)
+        static void ShowPostData(string jsonData)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.Method = "POST";
+            dynamic results = JsonConvert.DeserializeObject<dynamic>(jsonData);
+            var id = results.id;
+            var userId = results.userId;
+            var title = results.title;
+            var body = results.body;
 
-            System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
-            Byte[] byteArray = encoding.GetBytes(jsonContent);
+            Console.WriteLine("Results: ID " + id + ". \nuserID: " + userId + ". \nTitle: " + title + ": " + body);
+            //Without reassigning value
+            Console.WriteLine("Results: ID " + results.id + ". \nuserID: " + results.userId + ". \nTitle: " + results.title + ": " + results.body);
 
-            request.ContentLength = byteArray.Length;
-            request.ContentType = @"application/json";
 
-            using (Stream dataStream = request.GetRequestStream())
+            Console.ReadLine();
+        }
+
+        static void ShowUsersData(string jsonData)
+        {
+            IList<User> UsersList = new List<User>();
+            UsersList = JsonConvert.DeserializeObject<List<User>>(jsonData);
+            for (var i = 0; i < UsersList.Count; i++)
             {
-                dataStream.Write(byteArray, 0, byteArray.Length);
+                //Console.WriteLine(UsersList.Count);
+                Console.WriteLine("ID: {0}\nName: {1}", UsersList[i].id,  UsersList[i].name);
+                Console.WriteLine("Email: {0}\nAddress: {1}", UsersList[i].email, UsersList[i].address.ToString());
+
+                Console.WriteLine("Phone: {0}\nWebsite: {1}", UsersList[i].phone, UsersList[i].website);
+                Console.WriteLine("Company: {0}", UsersList[i].company.ToString());
+
             }
-            long length = 0;
-            try
+            Console.ReadLine();
+
+            //Use Reflection to display all properties in User objects
+            object obj = new object();
+            PropertyInfo[] properties = obj.GetType().GetProperties();
+            foreach(var p in properties)
             {
-                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-                {
-                    length = response.ContentLength;
-                }
-            }
-            catch (WebException ex)
-            {
-                // Log exception and throw as for GET example above
+                var myVal = p.GetValue(obj);
+                Console.WriteLine("Test" + myVal);
             }
         }
 
+
         
+
+        
+
+
+
+        //void PostData(string url, string jsonContent)
+        //{
+        //    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+        //    request.Method = "POST";
+
+        //    System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
+        //    Byte[] byteArray = encoding.GetBytes(jsonContent);
+
+        //    request.ContentLength = byteArray.Length;
+        //    request.ContentType = @"application/json";
+
+        //    using (Stream dataStream = request.GetRequestStream())
+        //    {
+        //        dataStream.Write(byteArray, 0, byteArray.Length);
+        //    }
+        //    long length = 0;
+        //    try
+        //    {
+        //        using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+        //        {
+        //            length = response.ContentLength;
+        //        }
+        //    }
+        //    catch (WebException ex)
+        //    {
+        //        // Log exception and throw as for GET example above
+        //    }
+        //}
+
+
         //static HttpClient client = new HttpClient();
 
         //public class Product
