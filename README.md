@@ -10,6 +10,11 @@ To-DO - Limit amount of calls to API.
 
 Learning Resources
 http://dotnetbyexample.blogspot.nl/2012/02/json-deserialization-with-jsonnet-class.html 
+
 https://jsonplaceholder.typicode.com/
+
 https://stackoverflow.com/questions/31711692/desirialized-data-to-dictionary-using-a-foreach-loop-c-sharp-mvc
+
 https://stackoverflow.com/questions/4749639/deserializing-json-to-net-object-using-newtonsoft-or-linq-to-json-maybe
+
+
